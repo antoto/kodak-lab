@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+
+    <link rel="apple-touch-icon" href="logo.png">
+    <link rel="icon" href="logo.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <meta charset="UTF-8">
+    <title>KODAK-LAB ULTIMATE v5 | Pro Station</title>
+    <style>
+        :root { --kodak: #ffcb05; --red: #ed1c24; --bg: #050505; --panel: #121212; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #eee; margin: 0; display: flex; height: 100vh; overflow: hidden; flex-direction: column; }
+
+        .main-container { display: flex; flex: 1; overflow: hidden; }
+
+        /* --- ÉDITEUR GÉANT (GAUCHE) --- */
+        .editor-area { flex: 2; background: #000; display: flex; flex-direction: column; border-right: 1px solid #222; position: relative; }
+        .main-display { flex: 1; display: flex; justify-content: center; align-items: center; padding: 20px; overflow: hidden; cursor: zoom-in; }
+        .main-display img { max-width: 100%; max-height: 100%; object-fit: contain; box-shadow: 0 0 40px rgba(0,0,0,0.8); }
+        
+        .editor-toolbar { height: 280px; background: var(--panel); padding: 20px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; border-top: 1px solid #333; }
+
+        /* --- BIBLIOTHÈQUE (DROITE) --- */
+        .library-area { flex: 1; background: #0a0a0a; display: flex; flex-direction: column; min-width: 400px; }
+        .lib-header { padding: 15px; background: #111; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
+        .grid { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; padding: 15px; overflow-y: auto; align-content: start; }
+        
+        .thumb { background: #151515; border-radius: 4px; overflow: hidden; border: 2px solid transparent; cursor: pointer; transition: 0.1s; position: relative; aspect-ratio: 1/1; }
+        .thumb.active { border-color: var(--kodak); }
+        .thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .thumb .tag { position: absolute; bottom: 2px; right: 2px; font-size: 8px; background: var(--kodak); color: #000; padding: 1px 3px; font-weight: bold; }
+
+        /* --- PRESETS & SLIDERS --- */
+        .preset-list { display: flex; flex-direction: column; gap: 4px; overflow-y: auto; max-height: 220px; padding-right: 5px; }
+        .cat-title { color: var(--kodak); font-size: 0.65rem; font-weight: bold; padding: 8px 0 4px 0; border-bottom: 1px solid #333; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
+        .btn-p { background: #252525; border: 1px solid #333; color: #ccc; padding: 8px; border-radius: 3px; cursor: pointer; font-size: 0.7rem; text-align: left; width: 100%; }
+        .btn-p:hover { border-color: var(--kodak); }
+        .btn-p.active { background: var(--kodak); color: #000; font-weight: bold; }
+
+        .slider-group { background: #1a1a1a; padding: 10px; border-radius: 6px; }
+        label { display: flex; justify-content: space-between; font-size: 0.7rem; color: #777; margin-bottom: 5px; }
+        input[type="range"] { width: 100%; accent-color: var(--kodak); cursor: pointer; }
+
+        /* --- MODAL --- */
+        #fs { display: none; position: fixed; inset: 0; background: #000; z-index: 1000; justify-content: center; align-items: center; }
+        #fs img { max-width: 98%; max-height: 98%; }
+
+        /* --- FOOTER (REVISITÉ) --- */
+        footer { background: #000; padding: 0 20px; border-top: 1px solid var(--kodak); display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; color: #888; height: 45px; flex-shrink: 0; }
+        .footer-left { display: flex; align-items: center; gap: 12px; }
+        .footer-logo { height: 28px; width: 28px; border-radius: 5px; object-fit: cover; border: 1px solid #333; }
+        .footer-owner { color: var(--kodak); font-weight: bold; letter-spacing: 1px; }
+        .shortcuts span { margin-left: 15px; color: #888; }
+        .shortcuts b { color: var(--kodak); }
+
+        .btn { padding: 8px 15px; border-radius: 4px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-red { background: var(--red); color: #fff; width: 100%; margin-top: 5px; }
+        .btn-kodak { background: var(--kodak); color: #000; }
+
+        .date-toggle { display: flex; align-items: center; justify-content: center; gap: 10px; background: #222; padding: 10px; border-radius: 6px; margin-top: 10px; cursor: pointer; border: 1px solid #333; }
+        .date-toggle input { cursor: pointer; accent-color: var(--kodak); scale: 1.2; }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <div class="editor-area">
+            <div class="main-display" id="mainDisplay" onclick="openFS()">
+                <div style="color:#333; font-size: 2rem; font-weight: bold;">SÉLECTIONNEZ UNE PHOTO</div>
+            </div>
+            
+            <div class="editor-toolbar" id="toolbar" style="visibility:hidden">
+                <div>
+                    <label>LABO PELLICULES</label>
+                    <div class="preset-list" id="presetList"></div>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <div class="slider-group">
+                        <label>EXPOSITION <span id="v-exp">100</span></label>
+                        <input type="range" id="i-exp" min="40" max="180" value="100" oninput="live()">
+                    </div>
+                    <div class="slider-group">
+                        <label>CHALEUR <span id="v-warm">0</span></label>
+                        <input type="range" id="i-warm" min="-50" max="80" value="0" oninput="live()">
+                    </div>
+                    <div class="slider-group">
+                        <label>GRAIN <span id="v-grain">35</span></label>
+                        <input type="range" id="i-grain" min="0" max="120" value="35" oninput="live()">
+                    </div>
+                </div>
+                <div>
+                    <div class="date-toggle" onclick="toggleDateCheckbox()">
+                        <input type="checkbox" id="showDate" checked onchange="live()">
+                        <span style="font-size: 0.75rem; font-weight: bold;">INCRUSTER LA DATE</span>
+                    </div>
+                    <button class="btn btn-red" onclick="downloadOne()">SAUVEGARDER CETTE PHOTO</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="library-area">
+            <div class="lib-header">
+                <span style="font-weight: bold; color:var(--kodak)">KODAK DIGITAL LAB</span>
+                <button class="btn btn-kodak" onclick="document.getElementById('f').click()">+ AJOUTER</button>
+                <input type="file" id="f" multiple accept="image/*" style="display:none" onchange="load(this.files)">
+            </div>
+            <div class="grid" id="grid"></div>
+            <div style="padding: 10px; border-top: 1px solid #222;">
+                <button class="btn" style="width:100%; background:#222; color:#fff" onclick="downloadAll()">TOUT EXPORTER (.JPG)</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-left">
+            <img src="logo.png" class="footer-logo" alt="Logo">
+            <div>
+                <span class="footer-owner">© 2026 ANTONIN THOREL</span>
+                <span style="margin: 0 8px; color: #333;">|</span>
+                <span>UNIVERSAL DIGITAL PHOTO STATION</span>
+            </div>
+        </div>
+        <div class="shortcuts">
+            <span>NAV: <b>← →</b></span>
+            <span>FULL: <b>ESPACE</b></span>
+            <span>SAVE: <b>ENTRÉE</b></span>
+        </div>
+        <div style="letter-spacing: 2px; font-size: 0.6rem; opacity: 0.5;">KODAK-LAB v5.0 MULTI-MOUNT</div>
+    </footer>
+
+    <div id="fs" onclick="this.style.display='none'"><img id="fsImg"></div>
+
+<script>
+    let photos = [];
+    let cur = null;
+
+    const filmDB = {
+        'kodak_gold': { cat: 'Kodak Classics', n: 'Kodak Gold 200', e: 115, w: 25, g: 40, s: 140 },
+        'portra_400': { cat: 'Kodak Classics', n: 'Portra 400', e: 120, w: 12, g: 20, s: 115 },
+        'portra_160': { cat: 'Kodak Classics', n: 'Portra 160 (Pale)', e: 125, w: 8, g: 15, s: 95 },
+        'ektar_100': { cat: 'Kodak Classics', n: 'Kodak Ektar 100', e: 105, w: 15, g: 15, s: 180 },
+        'ultramax': { cat: 'Kodak Classics', n: 'Kodak UltraMax 400', e: 112, w: 18, g: 45, s: 155 },
+        'kodachrome': { cat: 'Kodak Classics', n: 'Kodachrome 64', e: 100, w: 20, g: 15, s: 140 },
+        'colorplus': { cat: 'Kodak Classics', n: 'Kodak ColorPlus', e: 110, w: 30, g: 40, s: 130 },
+        'trix_400': { cat: 'Kodak Classics', n: 'Kodak Tri-X (B&W)', e: 110, w: 0, g: 65, s: 0 },
+        'tmax_100': { cat: 'Kodak Classics', n: 'Kodak T-Max 100', e: 105, w: 0, g: 25, s: 0 },
+        'fuji_400h': { cat: 'Fujifilm Series', n: 'Fuji Pro 400H', e: 105, w: -10, g: 30, s: 125 },
+        'superia': { cat: 'Fujifilm Series', n: 'Fuji Superia 400', e: 110, w: -15, g: 40, s: 135 },
+        'velvia': { cat: 'Fujifilm Series', n: 'Fuji Velvia (Vivid)', e: 90, w: 5, g: 10, s: 210 },
+        'provia': { cat: 'Fujifilm Series', n: 'Fuji Provia 100F', e: 100, w: 0, g: 15, s: 140 },
+        'natura_1600': { cat: 'Fujifilm Series', n: 'Fuji Natura 1600', e: 130, w: 5, g: 85, s: 110 },
+        'fuji_neopan': { cat: 'Fujifilm Series', n: 'Fuji Neopan 400', e: 110, w: 0, g: 50, s: 0 },
+        'astis_100': { cat: 'Fujifilm Series', n: 'Fuji Astia', e: 115, w: -5, g: 20, s: 100 },
+        'cinestill_800': { cat: 'Cinema & Exotic', n: 'Cinestill 800T', e: 110, w: -35, g: 50, s: 120 },
+        'cinestill_50': { cat: 'Cinema & Exotic', n: 'Cinestill 50D', e: 115, w: -10, g: 12, s: 130 },
+        'technicolor': { cat: 'Cinema & Exotic', n: 'Technicolor v2', e: 100, w: 10, g: 20, s: 220 },
+        'eastman_5247': { cat: 'Cinema & Exotic', n: 'Eastman 5247', e: 105, w: 15, g: 35, s: 145 },
+        'vision3': { cat: 'Cinema & Exotic', n: 'Kodak Vision3', e: 110, w: 5, g: 25, s: 125 },
+        'agfa_vista': { cat: 'Alternative & Retro', n: 'Agfa Vista 200', e: 100, w: 5, g: 45, s: 150 },
+        'agfa_precisa': { cat: 'Alternative & Retro', n: 'Agfa Precisa 100', e: 105, w: -15, g: 30, s: 160 },
+        'polaroid': { cat: 'Alternative & Retro', n: 'Polaroid 600', e: 120, w: 5, g: 40, s: 90 },
+        'insta_mini': { cat: 'Alternative & Retro', n: 'Instax Mini', e: 125, w: 10, g: 30, s: 100 },
+        'lomo_purple': { cat: 'Alternative & Retro', n: 'Lomography Purple', e: 110, w: -50, g: 55, s: 160 },
+        'lomo_metropolis': { cat: 'Alternative & Retro', n: 'Lomo Metropolis', e: 100, w: -20, g: 60, s: 60 },
+        'expired_90': { cat: 'Alternative & Retro', n: 'Expired 1990s', e: 140, w: 40, g: 90, s: 80 },
+        'foma_retro': { cat: 'Alternative & Retro', n: 'Fomapan Retro', e: 105, w: 0, g: 100, s: 0 },
+        'hp5_plus': { cat: 'Alternative & Retro', n: 'Ilford HP5 (B&W)', e: 115, w: 0, g: 75, s: 0 },
+        'pan_f': { cat: 'Alternative & Retro', n: 'Ilford Pan F+', e: 95, w: 0, g: 10, s: 0 },
+        'sepia_1900': { cat: 'Creative Looks', n: 'Sepia Antique', e: 100, w: 60, g: 50, s: 30 },
+        'night_vision': { cat: 'Creative Looks', n: 'Night Vision', e: 150, w: -40, g: 90, s: 40 },
+        'bleach_bypass': { cat: 'Creative Looks', n: 'Bleach Bypass', e: 110, w: -10, g: 50, s: 40 },
+        'washed_out': { cat: 'Creative Looks', n: 'Summer Fade', e: 130, w: 20, g: 25, s: 70 },
+        'teal_orange': { cat: 'Creative Looks', n: 'Teal & Orange', e: 110, w: -15, g: 20, s: 150 }
+    };
+
+    const pList = document.getElementById('presetList');
+    let lastCat = "";
+    for (let key in filmDB) {
+        if (filmDB[key].cat !== lastCat) {
+            const title = document.createElement('div');
+            title.className = 'cat-title'; title.innerText = filmDB[key].cat;
+            pList.appendChild(title); lastCat = filmDB[key].cat;
+        }
+        const btn = document.createElement('button');
+        btn.className = 'btn-p'; btn.innerText = filmDB[key].n;
+        btn.onclick = () => setP(key); btn.id = 'btn-'+key;
+        pList.appendChild(btn);
+    }
+
+    // --- KEYBOARD SHORTCUTS ---
+    document.addEventListener('keydown', (e) => {
+        if (photos.length === 0) return;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+            let next = (cur + 1) % photos.length; select(next);
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+            let prev = (cur - 1 + photos.length) % photos.length; select(prev);
+        } else if (e.key === 'Enter') {
+            downloadOne();
+        } else if (e.key === ' ') {
+            e.preventDefault(); openFS();
+        } else if (e.key === 'Escape') {
+            document.getElementById('fs').style.display = 'none';
+        }
+    });
+
+    function toggleDateCheckbox() {
+        const cb = document.getElementById('showDate'); cb.checked = !cb.checked; live();
+    }
+
+    function load(files) {
+        Array.from(files).forEach((file, i) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const id = photos.length;
+                    const aiS = analyze(img);
+                    photos.push({ img, name:file.name, s: {...aiS, p:'kodak_gold', useDate: true} });
+                    const div = document.createElement('div');
+                    div.className = 'thumb'; div.id = `t-${id}`;
+                    div.onclick = () => select(id);
+                    div.innerHTML = `<img src="${e.target.result}"><div class="tag">IA OK</div>`;
+                    document.getElementById('grid').appendChild(div);
+                    if(id === 0) select(0);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function analyze(img) {
+        const c = document.createElement('canvas'); const ctx = c.getContext('2d');
+        c.width = 40; c.height = 40; ctx.drawImage(img, 0, 0, 40, 40);
+        const d = ctx.getImageData(0,0,40,40).data;
+        let l = 0; for(let i=0; i<d.length; i+=16) l += (d[i]+d[i+1]+d[i+2])/3;
+        const b = l/100;
+        return { exp: b<100?130:110, warm: b>130?20:10, grain: 35 };
+    }
+
+    function select(id) {
+        cur = id;
+        document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
+        document.getElementById(`t-${id}`).classList.add('active');
+        document.getElementById(`t-${id}`).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        document.getElementById('toolbar').style.visibility = 'visible';
+        const s = photos[id].s;
+        document.getElementById('i-exp').value = s.exp;
+        document.getElementById('i-warm').value = s.warm;
+        document.getElementById('i-grain').value = s.grain;
+        document.getElementById('showDate').checked = s.useDate;
+        setPUI(s.p); refresh();
+    }
+
+    function live() {
+        if(cur === null) return;
+        const s = photos[cur].s;
+        s.exp = document.getElementById('i-exp').value;
+        s.warm = document.getElementById('i-warm').value;
+        s.grain = document.getElementById('i-grain').value;
+        s.useDate = document.getElementById('showDate').checked;
+        document.getElementById('v-exp').innerText = s.exp;
+        document.getElementById('v-warm').innerText = s.warm;
+        document.getElementById('v-grain').innerText = s.grain;
+        refresh();
+    }
+
+    function setP(key) {
+        const p = filmDB[key]; const s = photos[cur].s;
+        s.p = key; s.exp = p.e; s.warm = p.w; s.grain = p.g;
+        document.getElementById('i-exp').value = s.exp;
+        document.getElementById('i-warm').value = s.warm;
+        document.getElementById('i-grain').value = s.grain;
+        setPUI(key); live();
+    }
+
+    function setPUI(key) {
+        document.querySelectorAll('.btn-p').forEach(b => b.classList.remove('active'));
+        document.getElementById('btn-'+key).classList.add('active');
+    }
+
+    function refresh() {
+        const p = photos[cur];
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const s = p.s; const db = filmDB[s.p];
+        canvas.width = 1600;
+        canvas.height = (p.img.height / p.img.width) * 1600;
+        ctx.filter = `brightness(${s.exp}%) sepia(${s.warm}%) saturate(${db.s}%) contrast(1.15)`;
+        ctx.drawImage(p.img, 0, 0, canvas.width, canvas.height);
+        const id = ctx.getImageData(0,0,canvas.width, canvas.height);
+        for(let i=0; i<id.data.length; i+=4) {
+            const n = (Math.random()-0.5) * s.grain;
+            id.data[i]+=n; id.data[i+1]+=n; id.data[i+2]+=n;
+        }
+        ctx.putImageData(id, 0, 0);
+        if(s.useDate && db.s > 0) {
+            const now = new Date();
+            const dateStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
+            const isPortrait = canvas.height > canvas.width;
+            const fontSize = isPortrait ? canvas.width * 0.06 : canvas.height * 0.05;
+            const posX = isPortrait ? canvas.width * 0.55 : canvas.width * 0.70;
+            const posY = canvas.height * 0.95;
+            ctx.font = `bold ${fontSize}px "Courier New"`;
+            ctx.fillStyle = "rgba(255, 120, 0, 0.9)";
+            ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = 4;
+            ctx.fillText(dateStr, posX, posY);
+        }
+        document.getElementById('mainDisplay').innerHTML = `<img src="${canvas.toDataURL('image/jpeg', 0.85)}">`;
+    }
+
+    function openFS() {
+        if(cur === null) return;
+        document.getElementById('fsImg').src = document.querySelector('#mainDisplay img').src;
+        document.getElementById('fs').style.display = 'flex';
+    }
+
+    function downloadOne() {
+        const a = document.createElement('a');
+        a.download = `KODAK_PRO_${photos[cur].name}`;
+        a.href = document.querySelector('#mainDisplay img').src;
+        a.click();
+    }
+
+    function downloadAll() {
+        photos.forEach((p, i) => {
+            setTimeout(() => { select(i); downloadOne(); }, i * 400);
+        });
+    }
+</script>
+</body>
+</html>
