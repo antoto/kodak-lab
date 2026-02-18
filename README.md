@@ -1,43 +1,71 @@
-# 🎞️ K-LAB ULTIMATE v5.0
-> **Universal Digital Photo Station** — Donnez l'âme de l'argentique à vos clichés numériques.
+<p align="center">
+  <img src="logo.png" width="120" alt="K-LAB Logo">
+</p>
 
-[![Version](https://img.shields.io/badge/Version-5.0_PRO-ffcb05.svg)](https://github.com/antoto)
-[![Instagram](https://img.shields.io/badge/Instagram-@anto.thrl-E4405F.svg)](https://instagram.com/anto.thrl)
-[![Developer](https://img.shields.io/badge/Developer-antoto-black.svg)](https://github.com/antoto)
+<h1 align="center">🎞️ K-LAB ULTIMATE v5.0</h1>
 
-## ✨ Aperçu
-**K-LAB ULTIMATE** est une station de développement photo ultra-légère conçue par **Antonin THOREL**. Elle transforme instantanément vos clichés numériques (Sony, Fuji, Canon, Nikon, Smartphone) en rendus argentiques haut de gamme.
+<p align="center">
+  <strong>Universal Digital Photo Station</strong><br>
+  <em>L'élégance de l'argentique au service de la précision numérique.</em>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Version-5.0_PRO-ffcb05?style=for-the-badge&logoColor=black" alt="Version">
+  <img src="https://img.shields.io/badge/Status-Stable-green?style=for-the-badge" alt="Status">
+  <a href="https://instagram.com/anto.thrl">
+    <img src="https://img.shields.io/badge/Instagram-@anto.thrl-E4405F?style=for-the-badge&logo=instagram&logoColor=white" alt="Insta">
+  </a>
+</p>
 
 ---
 
-## 🚀 Fonctionnalités Clés
-* **35+ Pellicules Mythiques :** Émulations de Kodak Gold, Portra, Cinestill et Fujifilm.
-* **Moteur de Grain Dynamique :** Simulation de grain argentique basée sur la luminance.
-* **Auto-Lab IA :** Analyse automatique de l'exposition dès l'importation.
-* **Workflow "Zero Latence" :** Navigation et édition 100% via raccourcis clavier.
-* **Incrustation Date :** Look "Vintage Date Stamp" paramétrable.
+## 📸 Le Concept
+**K-LAB ULTIMATE** est un laboratoire de développement virtuel conçu pour les photographes qui veulent retrouver le grain et la colorimétrie des pellicules mythiques (Kodak, Fuji, Cinestill) sans la lourdeur des logiciels pro traditionnels.
 
-## ⌨️ Raccourcis Pro
+> "Une interface sombre pour une concentration totale sur l'image."
+
+---
+
+## 🛠️ Fonctionnalités "Power-User"
+
+### 🎞️ Labo de Pellicules (35+ Presets)
+Accédez instantanément aux rendus iconiques :
+* **Série Kodak :** Portra 400, Gold 200, Ektar, Tri-X (B&W).
+* **Série Fujifilm :** Pro 400H, Velvia, Superia, Natura 1600.
+* **Cinéma & Exotique :** Cinestill 800T, Technicolor, Lomo Purple.
+
+### 🧠 Intelligence Artificielle (Auto-Lab)
+Chaque photo importée est analysée par notre algorithme pour calibrer l'exposition et la chaleur optimale en fonction de la luminance réelle du capteur.
+
+### ⌨️ Workflow Ultra-Rapide
 | Touche | Action |
 | :--- | :--- |
-| **← / →** | Naviguer dans la bibliothèque |
-| **ESPACE** | Mode Plein Écran (Aperçu critique) |
-| **ENTRÉE** | Sauvegarde immédiate (Export JPEG) |
-| **ÉCHAP** | Fermer l'aperçu |
-
-## 📱 Installation (PWA)
-Ce projet est une **Progressive Web App**. 
-1. Ouvrez le lien de l'app sur votre navigateur.
-2. **Sur iOS :** Partager > "Sur l'écran d'accueil".
-3. **Sur Android/PC :** Menu > "Installer l'application".
+| <kbd>←</kbd> <kbd>→</kbd> | Navigation éclair dans la bibliothèque |
+| <kbd>ESPACE</kbd> | **Preview Critique** (Plein écran sans distraction) |
+| <kbd>ENTRÉE</kbd> | **Export Instantané** (JPEG High-Quality) |
+| <kbd>SUPPR</kbd> | Retrait rapide de la sélection |
 
 ---
 
-## 🛠️ Stack Technique
-* **Frontend :** HTML5, CSS3 Modern, Vanilla JavaScript.
-* **Processing :** Canvas API (Manipulation directe des pixels via `ImageData`).
-* **Privacy :** Traitement 100% local (aucune donnée n'est envoyée sur un serveur).
+## 🎨 Design & Ergonomie
+L'application respecte les codes esthétiques des stations de travail haut de gamme :
+* **Dark Mode Natif :** Fond `#050505` pour respecter la chromie des photos.
+* **Responsive :** Travaillez aussi bien sur votre Mac que sur iPad ou iPhone.
+* **Privacy First :** Aucun serveur. Vos photos restent sur votre machine.
 
 ---
-*Développé avec passion par **Antonin THOREL (@antoto)**. © 2026 Tous droits réservés.*
-*Note : Ce projet est indépendant et n'est pas affilié à la marque Kodak.*
+
+## 🚀 Installation Rapide (PWA)
+
+1.  **Hébergement :** Déployez sur GitHub Pages.
+2.  **Sur Chrome (Desktop) :** Cliquez sur l'icône "Installer" dans la barre d'URL.
+3.  **Sur Mobile :** "Ajouter sur l'écran d'accueil" pour une expérience sans bordure.
+
+---
+
+<p align="center">
+  <br>
+  <b>Développé par <a href="https://github.com/antoto">Antonin THOREL (@antoto)</a></b><br>
+  <em>Propulsé par Vanilla JS & Passion Argentique</em><br>
+  <small>© 2026 K-LAB Stations. Tous droits réservés.</small>
+</p>
