@@ -12,8 +12,8 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Version-5.0_PRO-ffcb05?style=for-the-badge&logoColor=black" alt="Version">
   <img src="https://img.shields.io/badge/Status-Stable-green?style=for-the-badge" alt="Status">
-  <a href="https://instagram.com/anto.thrl">
-    <img src="https://img.shields.io/badge/Instagram-@anto.thrl-E4405F?style=for-the-badge&logo=instagram&logoColor=white" alt="Insta">
+  <a href="mailto:antoninthorel@icloud.com">
+    <img src="https://img.shields.io/badge/Contact-Email-blue?style=for-the-badge&logo=icloud&logoColor=white" alt="Email">
   </a>
 </p>
 
