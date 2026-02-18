@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-
     <link rel="apple-touch-icon" href="logo.png">
     <link rel="icon" href="logo.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -33,6 +32,11 @@
         .thumb.active { border-color: var(--kodak); }
         .thumb img { width: 100%; height: 100%; object-fit: cover; }
         .thumb .tag { position: absolute; bottom: 2px; right: 2px; font-size: 8px; background: var(--kodak); color: #000; padding: 1px 3px; font-weight: bold; }
+        
+        /* BOUTON SUPPRIMER MINIATURE */
+        .thumb .del-btn { position: absolute; top: 2px; left: 2px; background: rgba(237, 28, 36, 0.8); color: white; border: none; width: 18px; height: 18px; border-radius: 3px; font-size: 12px; font-weight: bold; cursor: pointer; display: none; z-index: 10; line-height: 1; }
+        .thumb:hover .del-btn { display: block; }
+        .thumb .del-btn:hover { background: var(--red); transform: scale(1.1); }
 
         /* --- PRESETS & SLIDERS --- */
         .preset-list { display: flex; flex-direction: column; gap: 4px; overflow-y: auto; max-height: 220px; padding-right: 5px; }
@@ -70,7 +74,7 @@
     <div class="main-container">
         <div class="editor-area">
             <div class="main-display" id="mainDisplay" onclick="openFS()">
-                <div style="color:#333; font-size: 2rem; font-weight: bold;">SÉLECTIONNEZ UNE PHOTO</div>
+                <div id="emptyMsg" style="color:#333; font-size: 2rem; font-weight: bold;">SÉLECTIONNEZ UNE PHOTO</div>
             </div>
             
             <div class="editor-toolbar" id="toolbar" style="visibility:hidden">
@@ -195,9 +199,9 @@
     document.addEventListener('keydown', (e) => {
         if (photos.length === 0) return;
         if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-            let next = (cur + 1) % photos.length; select(next);
+            navigate(1);
         } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-            let prev = (cur - 1 + photos.length) % photos.length; select(prev);
+            navigate(-1);
         } else if (e.key === 'Enter') {
             downloadOne();
         } else if (e.key === ' ') {
@@ -206,6 +210,12 @@
             document.getElementById('fs').style.display = 'none';
         }
     });
+
+    function navigate(dir) {
+        if (photos.length === 0) return;
+        let next = (cur + dir + photos.length) % photos.length;
+        select(next);
+    }
 
     function toggleDateCheckbox() {
         const cb = document.getElementById('showDate'); cb.checked = !cb.checked; live();
@@ -220,17 +230,45 @@
                     const id = photos.length;
                     const aiS = analyze(img);
                     photos.push({ img, name:file.name, s: {...aiS, p:'kodak_gold', useDate: true} });
-                    const div = document.createElement('div');
-                    div.className = 'thumb'; div.id = `t-${id}`;
-                    div.onclick = () => select(id);
-                    div.innerHTML = `<img src="${e.target.result}"><div class="tag">IA OK</div>`;
-                    document.getElementById('grid').appendChild(div);
-                    if(id === 0) select(0);
+                    renderGrid();
+                    if(cur === null) select(0);
                 };
                 img.src = e.target.result;
             };
             reader.readAsDataURL(file);
         });
+    }
+
+    function renderGrid() {
+        const grid = document.getElementById('grid');
+        grid.innerHTML = '';
+        photos.forEach((p, id) => {
+            const div = document.createElement('div');
+            div.className = 'thumb' + (id === cur ? ' active' : '');
+            div.id = `t-${id}`;
+            div.onclick = () => select(id);
+            
+            div.innerHTML = `
+                <button class="del-btn" onclick="removePhoto(event, ${id})">×</button>
+                <img src="${p.img.src}">
+                <div class="tag">IA OK</div>
+            `;
+            grid.appendChild(div);
+        });
+    }
+
+    function removePhoto(e, id) {
+        e.stopPropagation(); // Évite de sélectionner la photo en même temps
+        photos.splice(id, 1);
+        if (photos.length === 0) {
+            cur = null;
+            document.getElementById('toolbar').style.visibility = 'hidden';
+            document.getElementById('mainDisplay').innerHTML = '<div style="color:#333; font-size: 2rem; font-weight: bold;">SÉLECTIONNEZ UNE PHOTO</div>';
+        } else {
+            if (cur >= photos.length) cur = photos.length - 1;
+            select(cur);
+        }
+        renderGrid();
     }
 
     function analyze(img) {
@@ -243,16 +281,23 @@
     }
 
     function select(id) {
+        if (photos.length === 0) return;
         cur = id;
         document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
-        document.getElementById(`t-${id}`).classList.add('active');
-        document.getElementById(`t-${id}`).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        const activeThumb = document.getElementById(`t-${id}`);
+        if(activeThumb) activeThumb.classList.add('active');
+        
         document.getElementById('toolbar').style.visibility = 'visible';
         const s = photos[id].s;
         document.getElementById('i-exp').value = s.exp;
         document.getElementById('i-warm').value = s.warm;
         document.getElementById('i-grain').value = s.grain;
         document.getElementById('showDate').checked = s.useDate;
+        
+        document.getElementById('v-exp').innerText = s.exp;
+        document.getElementById('v-warm').innerText = s.warm;
+        document.getElementById('v-grain').innerText = s.grain;
+        
         setPUI(s.p); refresh();
     }
 
@@ -280,10 +325,12 @@
 
     function setPUI(key) {
         document.querySelectorAll('.btn-p').forEach(b => b.classList.remove('active'));
-        document.getElementById('btn-'+key).classList.add('active');
+        const activeBtn = document.getElementById('btn-'+key);
+        if(activeBtn) activeBtn.classList.add('active');
     }
 
     function refresh() {
+        if(cur === null) return;
         const p = photos[cur];
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
@@ -320,8 +367,9 @@
     }
 
     function downloadOne() {
+        if(cur === null) return;
         const a = document.createElement('a');
-        a.download = `KODAK_PRO_${photos[cur].name}`;
+        a.download = `K_LAB_PRO_${photos[cur].name}`;
         a.href = document.querySelector('#mainDisplay img').src;
         a.click();
     }
